@@ -53,7 +53,7 @@ This is made possible by the two classes we just met, **Milestone** and **Action
 
 ## Action
 
-I like to thing about an **Action** as a stored Promise. Because that's what it's meant to be. The internal job of the robot is to convert Actions in Promises and keep track of when the Promise was rejected or resolved.
+I like to think about an **Action** as a *stored* Promise. Because that's what it's meant to be. The internal job of the robot is to convert Actions in Promises and keep track of when the Promise was rejected or resolved.
 
 An **Action** has a type, a related registered function (a.k.a. as *method*), a *next* **Action** array (that can run multiple operations *virtually* in parallel) and an optional *done* **Action**, that will be run after all other **Actions** have completed.
 
