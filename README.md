@@ -274,7 +274,7 @@ configure('mongodb://localhost:27017/test', 15).then(({ bulkRegister, spawn }) =
 > ````javascript
 > const bulkRegister = (obj) => {
 >		for (var key in obj) {
-> 			register(key, obj[key']);
+> 			register(key, obj[key]);
 > 		}
 > }; 	
 > ````
