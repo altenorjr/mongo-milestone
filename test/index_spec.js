@@ -6,7 +6,7 @@ import { MongoClient } from 'mongodb';
 
 import * as db from '../src/db';
 import * as config from '../src/config';
-import { configure } from '../index';
+import { configure } from '../src/entry';
 
 const close = () => { };
 const collection = () => ({});

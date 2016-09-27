@@ -1,11 +1,11 @@
 import Q from 'q';
 import moment from 'moment';
-import Milestone from './src/domain/Milestone';
-import Action from './src/domain/Action';
-import { register, unregister, registeredMethods as bulkRegister } from './src/dispatcher';
-import { setup, getConfig, RETRY_TIMESPAN } from './src/config';
-import { connect } from './src/db';
-import { run, spawn, createMilestone } from './src/robot';
+import Milestone from './domain/Milestone';
+import Action from './domain/Action';
+import { register, unregister, registeredMethods as bulkRegister } from './dispatcher';
+import { setup, getConfig, RETRY_TIMESPAN } from './config';
+import { connect } from './db';
+import { run, spawn, createMilestone } from './robot';
 
 const configure = (mongoConnectionString, retryTimespan, jobsCollectionName) => {
     setup(mongoConnectionString, retryTimespan, jobsCollectionName);
