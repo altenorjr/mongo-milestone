@@ -259,7 +259,6 @@ configure('mongodb://localhost:27017/test', 15).then(({ bulkRegister, spawn }) =
 >const register = ({ name, fn }) => {
 >		registry.add(name, fn);
 >}
- 	
 > ````
 > Registers a function. When the robot tries to execute an **Action** it uses the *method* property, that is in turn defaulted from the *type* property. If the function isn't the method will throw an exception
 
