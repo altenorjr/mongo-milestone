@@ -265,7 +265,7 @@ configure('mongodb://localhost:27017/test', 15).then(({ bulkRegister, spawn }) =
 * _**unregister**_: 
 > ````javascript
 > const unregister = (name) => {
->		registry[name ? 'remove' : 'clear'](name);
+>		registry[name === false ? 'remove' : 'clear'](name);
 > };
 > ````
 > Unregisters a function by its name. If ````name === false```` it **unregisters all registered functions**
