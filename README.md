@@ -217,9 +217,14 @@ configure('mongodb://localhost:27017/test', 15).then(({ bulkRegister, spawn }) =
 ````
 
 ##### Parameters
-* _**mongoConnectionString**_: The connection string to the database
-* _**retryTimespan**_: Time (in minutes) to wait before considering an Action as abandoned and trying it again. Defaults to 30 minutes
-* _**jobsCollectionName**_: The name of the collection used by the library to store the operations. Defaults to '\_milestones_'
+
+* _**mongoConnectionString**_: 
+> The connection string to the database
+
+* _**retryTimespan**_: 
+> Time (in minutes) to wait before considering an Action as abandoned and trying it again. Defaults to 30 minutes
+* _**jobsCollectionName**_: 
+> The name of the collection used by the library to store the operations. Defaults to '\_milestones_'
 
 ##### Methods returned in the resolved Promise
 * _**run**_
@@ -265,7 +270,7 @@ configure('mongodb://localhost:27017/test', 15).then(({ bulkRegister, spawn }) =
 * _**unregister**_: 
 > ````javascript
 > const unregister = (name) => {
->		registry[name === false ? 'remove' : 'clear'](name);
+>		registry[name === false ? 'clear' : 'remove'](name);
 > };
 > ````
 > Unregisters a function by its name. If ````name === false```` it **unregisters all registered functions**
@@ -274,7 +279,7 @@ configure('mongodb://localhost:27017/test', 15).then(({ bulkRegister, spawn }) =
 > ````javascript
 > const bulkRegister = (obj) => {
 >		for (var key in obj) {
-> 			register(key, obj[key]);
+> 			register(key, obj[key])
 > 		}
 > }; 	
 > ````
