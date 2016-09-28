@@ -1,3 +1,5 @@
+import 'babel-polyfill';
+
 import Q from 'q';
 import moment from 'moment';
 import Milestone from './domain/Milestone';
