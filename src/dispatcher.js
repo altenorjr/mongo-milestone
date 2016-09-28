@@ -1,7 +1,7 @@
 import Q from 'q';
 
 export const METHOD_NOT_FOUND = (method) => (`The invoked method "${method}" wasn't found. Have you registered it yet?`);
-export const DISPATCHER_PROPERTIES_MUST_BE_FUNCTIONS = `All properties is the Dispatcher object must be functions`;
+export const DISPATCHER_PROPERTIES_MUST_BE_FUNCTIONS = `All properties in the Dispatcher object must be functions`;
 export const DISPATCHER_KEYS_MUST_BE_STRINGS = `All properties is the Dispatcher object must be functions`;
 
 const _dispatcher = {};
@@ -58,14 +58,14 @@ export const registeredMethods = () => {
     return Object.assign({}, _dispatcher);
 }
 
-const registerMethods = (registeredDispatcher) => {
+export const registerMethods = (registeredDispatcher) => {
     var methodNames = Object.keys(registeredDispatcher);
 
     if (methodNames.find(name => !name || typeof name !== 'string')) {
         throw new Error(DISPATCHER_KEYS_MUST_BE_STRINGS);
     }
 
-    if (methodNames.find(name => !registeredDispatcher[name] || typeof registeredDispatcher[name] === 'function')) {
+    if (methodNames.find(name => !registeredDispatcher[name] || typeof registeredDispatcher[name] !== 'function')) {
         throw new Error(DISPATCHER_PROPERTIES_MUST_BE_FUNCTIONS);
     }
 

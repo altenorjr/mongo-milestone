@@ -4,9 +4,11 @@ import Action, * as msg from '../../src/domain/Action';
 
 describe('Action', () => {
     it("Can't be instantiated without an Action name", () => {
-        const fn = () => { return new Action() };
+        const fn1 = () => { return new Action({}) };
+        const fn2 = () => { return new Action() };
 
-        expect(fn).to.throw(Error, msg.NAME_REQUIRED);
+        expect(fn1).to.throw(Error, msg.TYPE_REQUIRED);
+        expect(fn2).to.throw(Error, msg.PARAMETERS_EXPECTED);
     });
 
     it("Can be instantiated with only an Action name", () => {

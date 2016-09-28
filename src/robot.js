@@ -111,12 +111,12 @@ export const run = () => {
 export const createMilestone = (milestone) => {
     const deferred = Q.defer();
 
+    if (!(milestone instanceof Milestone)) {
+        throw new Error(INVALID_MILESTONE);
+    }
+    
     Q.spawn(function* () {
         try {
-            if (!(milestone instanceof Milestone)) {
-                return deferred.reject(new Error(INVALID_MILESTONE));
-            }
-
             yield db.milestones.insertOne(milestone);
 
             deferred.resolve(milestone);
@@ -143,8 +143,12 @@ export const startMilestone = (id) => {
             const params = { milestone: milestone.parameters };
 
             const output = yield robot.runAction(milestone, milestone.action, params, 'action');
+            
+            milestone = yield db.milestones.findOne({ _id: id });
 
-            milestone = yield robot.endMilestone(milestone._id, output);
+            const milestoneOutput = milestone.report.filter(t => t.success).reduce((params, attempt) => (Object.assign({}, params, { [attempt.actionName]: attempt.output })), params);
+            
+            milestone = yield robot.endMilestone(milestone._id, milestoneOutput);
 
             deferred.resolve(milestone);
         }
@@ -214,13 +218,7 @@ export const runAction = (milestone, action, parameters, path) => {
             const allActionsComplete = (action.next || []).map((currentAction, index) => {
                 if (currentAction.state) {
                     return Q.fcall(() => {
-                        const promiseResult = {};
-
-                        const successfulAttempt = currentAction.report.find(t => t.success);
-
-                        promiseResult[currentAction.type] = successfulAttempt.output;
-
-                        return promiseResult;
+                        return { [currentAction.type]: (currentAction.report.find(t => t.success) || {}).output };
                     });
                 }
                 else {
@@ -234,13 +232,7 @@ export const runAction = (milestone, action, parameters, path) => {
                         return robot.runAction(milestone, currentAction, childrenParameters, childPath);
                     }
                     else {
-                        const _deferred = Q.defer();
-
-                        setTimeout(() => {
-                            _deferred.reject(new Error(ACTION_NOT_READY(currentAction.type)));
-                        }, 1)
-
-                        return _deferred.promise;
+                        return Q.fcall(() => { throw new Error(ACTION_NOT_READY(currentAction.type)) });
                     }
                 }
             });
@@ -264,11 +256,7 @@ export const runAction = (milestone, action, parameters, path) => {
                 doneResult = yield robot.runAction(milestone, action.done, doneParameters, `${path}.done`);
             }
 
-            const actionResult = {};
-
-            actionResult[action.type] = parentSuccessfulOutput;
-
-            deferred.resolve(actionResult);
+            deferred.resolve({ [action.type]: parentSuccessfulOutput });
         }
         catch (e) {
             deferred.reject(e);
