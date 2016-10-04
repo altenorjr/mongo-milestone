@@ -114,7 +114,7 @@ export const createMilestone = (milestone) => {
     if (!(milestone instanceof Milestone)) {
         throw new Error(INVALID_MILESTONE);
     }
-    
+
     Q.spawn(function* () {
         try {
             yield db.milestones.insertOne(milestone);
@@ -143,11 +143,11 @@ export const startMilestone = (id) => {
             const params = { milestone: milestone.parameters };
 
             const output = yield robot.runAction(milestone, milestone.action, params, 'action');
-            
+
             milestone = yield db.milestones.findOne({ _id: id });
 
             const milestoneOutput = milestone.report.filter(t => t.success).reduce((params, attempt) => (Object.assign({}, params, { [attempt.actionName]: attempt.output })), params);
-            
+
             milestone = yield robot.endMilestone(milestone._id, milestoneOutput);
 
             deferred.resolve(milestone);
@@ -207,6 +207,10 @@ export const runAction = (milestone, action, parameters, path) => {
                 finally {
                     milestone = yield robot.finishAttempt(milestone._id, methodOutput, path, attemptId);
                 }
+
+                if (methodOutput instanceof Error) {
+                    return deferred.reject(methodOutput);
+                }
             }
 
             const parentSuccessfulOutput = ((walkPath(milestone, `${path}.report`) || []).find(attempt => attempt.success) || {}).output;
@@ -237,14 +241,7 @@ export const runAction = (milestone, action, parameters, path) => {
                 }
             });
 
-            let allActionsCompleteResult;
-
-            try {
-                allActionsCompleteResult = yield Q.all(allActionsComplete);
-            }
-            catch (e) {
-                return deferred.reject(e);
-            }
+            const allActionsCompleteResult = yield Q.all(allActionsComplete);
 
             const doneParameters = allActionsCompleteResult.reduce((parameters, item) => {
                 return Object.assign({}, parameters, item);
@@ -312,7 +309,8 @@ export const finishAttempt = (id, output, path, attemptId) => {
     Q.spawn(function* () {
         try {
             const isError = output instanceof Error;
-            const parsedOutput = isError ? serializeError(output) : output;
+
+            const parsedOutput = isError ? serializeError(output) : (typeof output.toObject === 'function' ? output.toObject() : output);
 
             const completionDate = new Date();
 
