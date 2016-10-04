@@ -1,10 +1,8 @@
-import 'babel-polyfill';
-
 import Q from 'q';
 import moment from 'moment';
 import Milestone from './domain/Milestone';
 import Action from './domain/Action';
-import { register, unregister, registerMethods as bulkRegister } from './dispatcher';
+import { register, unregister, registerMethods as bulkRegister, wrapMethod } from './dispatcher';
 import { setup, getConfig, RETRY_TIMESPAN } from './config';
 import { connect } from './db';
 import { run, spawn, createMilestone } from './robot';
@@ -19,7 +17,7 @@ const configure = (mongoConnectionString, retryTimespan, jobsCollectionName) => 
         try {
             const result = yield connect();
 
-            deferred.resolve({ run, spawn, register, unregister, bulkRegister });
+            deferred.resolve({ register, unregister, bulkRegister, run, spawn, wrapMethod });
         }
         catch (e) {
             deferred.reject(e);
@@ -29,4 +27,4 @@ const configure = (mongoConnectionString, retryTimespan, jobsCollectionName) => 
     return isReady;
 }
 
-export { configure, Milestone, Action, isReady, register, unregister, bulkRegister, run, spawn };
+export { configure, Milestone, Action, isReady, register, unregister, bulkRegister, run, spawn, wrapMethod };

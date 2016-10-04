@@ -7,7 +7,7 @@
     "test": "mocha --compilers js:babel-core/register --require ./test/test_helper.js --recursive",
     "test:watch": "npm run test -- --watch",
     "start": "babel-node index.js",
-    "build": "babel src --presets babel-preset-es2015 --out-dir dist",
+    "build": "babel src --plugins transform-es2015-modules-commonjs --out-dir dist",
     "build:watch": "nodemon --ignore dist --exec npm run build"
   },
   "repository": {
@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/altenorjr/mongo-milestone#readme",
   "dependencies": {
-    "babel-polyfill": "^6.13.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.16.0",
     "moment": "^2.15.1",
     "mongodb": "^2.2.10",
     "q": "^1.4.1",
@@ -39,8 +39,8 @@
     "sinon-as-promised": "^4.0.2"
   },
   "babel": {
-    "presets": [
-      "es2015"
+    "plugins": [
+      "transform-es2015-modules-commonjs"
     ]
   }
 }

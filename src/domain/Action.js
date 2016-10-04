@@ -25,6 +25,10 @@ export default class Action {
                 throw new Error(NEXT_ACTIONS_REQUIRED);
             }
 
+            if (typeof done === 'string') {
+                done = new Action(done);
+            }
+
             if (!!done && !(done instanceof Action)) {
                 throw new Error(DONE_REQUIRED);
             }
@@ -48,14 +52,12 @@ export default class Action {
                     setup.apply(null, params);
                 }
                 else if (typeof param === 'string') {
-                    const { type } = param;
-
-                    setup({ type });
+                    setup({ type: param });
                 }
                 break;
             }
             case 3: {
-                const [{ type, next, done }] = params;
+                const [type, next, done] = params;
 
                 setup({ type, next, done });
                 break;

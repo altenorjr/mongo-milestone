@@ -58,6 +58,26 @@ export const registeredMethods = () => {
     return Object.assign({}, _dispatcher);
 }
 
+export const wrapMethod = (() => {
+    const defaultTransformer = (parameters) => parameters
+
+    return (method, transformer = defaultTransformer, context = null) => {
+        if (typeof transformer !== 'function') {
+            transformer = defaultTransformer;
+        }
+
+        return function (parameters) {
+            let params = transformer(parameters);
+
+            return method.apply(context, Array.isArray(params) ? params : [params]);
+        }
+    };
+})();
+
+Function.prototype.wrap = function (transformer, context = null) {
+    return wrapMethod(this, transformer, context);
+};
+
 export const registerMethods = (registeredDispatcher) => {
     var methodNames = Object.keys(registeredDispatcher);
 
