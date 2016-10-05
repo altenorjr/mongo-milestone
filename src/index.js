@@ -2,7 +2,7 @@ import Q from 'q';
 import moment from 'moment';
 import Milestone from './domain/Milestone';
 import Action from './domain/Action';
-import { register, unregister, registerMethods as bulkRegister, wrapMethod } from './dispatcher';
+import { register, unregister, registerMethods as bulkRegister, wrapMethod, registeredMethods } from './dispatcher';
 import { setup, getConfig, RETRY_TIMESPAN } from './config';
 import { connect } from './db';
 import { run, spawn, createMilestone } from './robot';
@@ -27,4 +27,4 @@ const configure = (mongoConnectionString, retryTimespan, jobsCollectionName) => 
     return isReady;
 }
 
-export { configure, Milestone, Action, isReady, register, unregister, bulkRegister, run, spawn, wrapMethod };
+export { configure, Milestone, Action, isReady, register, unregister, bulkRegister, run, spawn, wrapMethod, registeredMethods };

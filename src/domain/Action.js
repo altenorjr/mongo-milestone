@@ -11,26 +11,16 @@ export default class Action {
                 throw new Error(TYPE_REQUIRED);
             }
 
-            if (next instanceof Action) {
-                next = [next];
-            }
-
-            if (!method && (!Array.isArray(next) || next.length === 0)) {
-                throw new Error(METHOD_OR_NEXT_REQUIRED);
-            }
-
-            next = next.map((action) => (typeof action === 'string' ? new Action(action) : action));
-
-            if (next.filter(t => !(t instanceof Action)).length) {
-                throw new Error(NEXT_ACTIONS_REQUIRED);
-            }
-
             if (typeof done === 'string') {
                 done = new Action(done);
             }
 
             if (!!done && !(done instanceof Action)) {
                 throw new Error(DONE_REQUIRED);
+            }
+
+            if (typeof next === 'string') {
+                next = [next];
             }
 
             if (typeof next === 'function') {
@@ -52,6 +42,10 @@ export default class Action {
                 }
             }
 
+            if (!method && (!Array.isArray(next) || next.length === 0)) {
+                throw new Error(METHOD_OR_NEXT_REQUIRED);
+            }
+
             this.type = type;
             this.method = method;
             this.state = method ? false : true;
@@ -68,16 +62,19 @@ export default class Action {
                 const [param] = params;
 
                 if (typeof param === 'object') {
-                    setup.apply(null, params);
+                    setup(params);
+                    break;
                 }
                 else if (typeof param === 'string') {
                     setup({ type: param });
+                    break;
                 }
-                break;
             }
             case 2: {
-                let [type, next] = params;
+                const [type, next] = params;
+
                 setup({ type, next });
+                break;
             }
             case 3: {
                 const [type, next, done] = params;
