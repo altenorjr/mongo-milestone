@@ -33,10 +33,29 @@ export default class Action {
                 throw new Error(DONE_REQUIRED);
             }
 
+            if (typeof next === 'function') {
+                next = next();
+
+                if (!Array.isArray(next)) {
+                    next = []
+                }
+                else {
+                    next = next.map(t => typeof t === 'string' ? new Action(t) : t).filter(t => t instanceof Action);
+                }
+            }
+            else {
+                if (Array.isArray(next)) {
+                    next = next.map(t => typeof t === 'string' ? new Action(t) : t).filter(t => t instanceof Action);
+                }
+                else {
+                    next = (next instanceof Action) ? [next] : []
+                }
+            }
+
             this.type = type;
             this.method = method;
             this.state = method ? false : true;
-            this.next = Array.isArray(next) ? next : (typeof next == 'Action' ? [next] : []);
+            this.next = next;
             this.done = done || null;
             this.report = [];
         };
@@ -56,6 +75,10 @@ export default class Action {
                 }
                 break;
             }
+            case 2: {
+                let [type, next] = params;
+                setup({ type, next });
+            }
             case 3: {
                 const [type, next, done] = params;
 
@@ -68,19 +91,5 @@ export default class Action {
                 setup({ type, method, next, done });
             }
         }
-    }
-
-    next(action) {
-        if (typeof action === 'string') {
-            action = new Action(action);
-        }
-
-        if (!(action instanceof Action)) {
-            throw new Error(NEXT_ACTIONS_REQUIRED);
-        }
-
-        this.next.push(action);
-
-        return action;
     }
 }

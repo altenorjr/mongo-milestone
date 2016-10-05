@@ -31,6 +31,17 @@ export const unregister = (name) => {
 };
 
 export const dispatch = (name, parameters) => {
+    if (typeof name !== 'string') {
+        throw new Error(METHOD_NOT_FOUND(name));
+    }
+
+    if (name.indexOf('[') !== -1) {
+        let parts = name.split('[');
+        name = parts[0];
+
+        parameters.index = parseInt(parts[1].split(']')[0]);
+    }
+
     const method = _dispatcher[name];
 
     if (!method) {
