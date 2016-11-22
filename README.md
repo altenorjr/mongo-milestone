@@ -8,13 +8,13 @@
  * It will work even if the operation is interrupted in the middle of the process.
  * You won't have much to worry about the curious 17 y.o. intern that is always catching pokémons way too close to the servers.
  * All the information resides in the database. You can restart and crash you app as many times as you want.
- * It doesn't really matter where is the what creates a milestone. The operations will run to completion.
+ * It doesn't really matter where, when o what creates a milestone. The operations will run to completion.
  * Or die trying.
  * But don't worry. As long as your database is reachable we'll store all the information about eventual failures. Even the stack trace is there
  * Works as an operations log for the most important events fo your business: The **Milestones**.
 
 
-Let's take, for example, a bank transfer. You can't afford to be interrupted We're going go create a robot that will make sure that all your transactions will be *eventually* completed.
+Let's take, for example, a bank transfer. You can't afford to be interrupted, right? We're going go create a robot that will make sure that all your transactions will be *eventually* completed.
 ````javascript
 //Main Application. This must be run once
 import { A } from 'my-vanity-and-perfectionism';
@@ -27,7 +27,7 @@ configure('mongodb://localhost:27017/milestone').then(({ register, spawn }) => {
 	spawn();
 });
 ````   
-That's it! That's literally all you have to do to make these two procedures happen in order and guaranteed that they'll run to completions. The *spawn* function takes care of all the heavy lifting, running periodically searching for newly inserted jobs. And yes, you can configure this period, among other things.
+That's it! That's literally all you have to do to make these two procedures happen in order and guaranteed that they'll run to completions. The *spawn* function takes care of all the heavy lifting, running periodically in the search for newly inserted jobs. And yes, you can configure this period, among other things.
 
 Ok, now it's time to send some jobs for the robot to take care of:
 
@@ -63,11 +63,17 @@ An **Action** has a type, a related registered function (a.k.a. as *method*), a 
 { import { Action } from 'mongo-milestone' }
 
 const action = new Action({
-	type, //String. Required
-    method = type, //String. Defaults to the type.
-    next = [], //Action array. If an Action is passed the constructor converts it to an array of one Action
-    done = null //Action to be executed after the *method* and all the actions in *next* are run successfully
+    type, 
+    method = type,
+    next = [],
+    done = null
 });
+
+//Simplified syntaxes allowed
+const action = new Action(type);
+const action = new Action(type, next);
+const action = new Action(type, next, done);
+const action = new Action(type, method, next, done);
 `````
 **DISCLAIMER**: Destructuring assignments are cool. And super useful. More about this decision you can [see here](http://www.2ality.com/2015/01/es6-destructuring.html) [and here](http://exploringjs.com/es6/ch_parameter-handling.html).
 
@@ -79,10 +85,10 @@ const action = new Action({
 > String. Taken from the constructor, that defaults it to the type. Name of the registered method to run when this promise is executed. If it's deliberately set to null, the **Action** will end right away and it will begin executing the actions in *next*. This is useful to start a parallel job and you don't want to code an action just for it. NOTICE that when the *method* is null it's required to have at least 2 Actions in the *next* field, otherwise it wouldn't make sense.
 
 * _**next**_: 
-> Optional array of **Actions** to be executed after the completion of the current **Action**. Taken from the constructor. 
+> Optional array of **Actions** to be executed after the completion of the current **Action**. Taken from the constructor. Passing a String in any of its positions will cause the constructor to create an **Action** with this String as it's type (and therefore it's method) and with no _next_ or _done_ child Actions. In other words, both ````[new Action('operation-1'), new Action('operation-2')]```` and ``['operation-1', 'operation-2']`` are equivalent. I know wich one you're gonna use more often. 'Cause I myself use the later all the time. Feel free to compose them any way you want
 
 * _**done**_: 
-> Optional **Action** to be run after all **Actions** in *next* are completed. Taken from the constructor.
+> Optional **Action** to be run after all **Actions** in *next* are completed. Taken from the constructor. If a String is passed in, the same rule that applies for _next_ also aplies here.
 
 * _**state**_: 
 > Boolean with *false* by default. As soon as the Action is completed it becomes *true*, even before running the *next* **Actions**.
@@ -99,11 +105,15 @@ Think of the Milestone as something you totally want to happen. It's composed of
 ````javascript
 { import { Milestone } from 'mongo-milestone' }
 
+// Default syntax
 const milestone = new Milestone({ 
 	type, //String. Required
 	action, //Action. Required
     parameters, //Any
 });
+
+//Simplified syntax
+const milestone = new Milestone(type, action, parameters);
 `````
 
 ##### Instance fields
@@ -112,7 +122,7 @@ const milestone = new Milestone({
 > String. Taken from the constructor. Used to filter the types of **Milestones** later
 
 * _**action**_: 
-> The *root* **Action**. Taken from the constructor
+> The *root* **Action**. Taken from the constructor. The _string to action_ rule, used in the _next_ and _done_ parameters of an Action doesn't apply here. You must create an *Action* object using the ````new Action(type, next, done)```` syntax, as creating a Milestone for a single operation doesn't make much sense. You can, if you want to, with just a couple aditional keystrokes. But seriously, why? Let me know if you have an scenario where this could make sense and I'll change this right away.
 
 * _**parameters**_: 
 > Any value. Or no value at all. Taken from the constructor and passed into all the **Actions** in this **Milestone**
@@ -136,12 +146,70 @@ const milestone = new Milestone({
 ##### Instance methods
 
 * _**save()**_: 
-> Saves the Milestone to the database. Returns a Promise that resolves with the Milestone after saving it. The robot will pick the Milestone up and run it during it's next pass
+> Saves the Milestone to the database. The **Milestone**  will be run immediatelly. Returns a Promise that resolves that will be fulfilled after the Milestone is completed. Do what you gotta do with it. I'd recommend using the promise with the new yield command inside a generator function with a library like [Kris Kowal's Q](https://www.npmjs.com/package/q) and it's awesome ````Q.spawn```` method. Works like a charm and defeats the Great Piramid of doom with glory.
 ````javascript
-Milestone.prototype.save = () => {
-	return db.collections('_milestones_').insertOne(this).then(() => (this));
-}
+import { Milestone } from 'mongo-milestone';
+
+const action = new Action('op-1', ['op-2.1', 'op-2.2'], 'op-3');
+const parameters = { param1: 'parameter 1', param2: 'parameter-2' };
+
+const Milestone = new Milestone('complex-operation', action, parameters);
+
+// Default syntax
+milestone.save().then((result) => {
+	console.log(result)
+}, (error) => {
+	console.log(error);
+});
+
+// Using it with yield and Q. 
+// It might look a little longer at a glance, but it's much cleaner and way easier to maintain. 
+// It feels like you're creating synchronous code while still being totally true to the Event Loop and the 
+// single-threaded syntax of javascript. Imagine the wonders this syntax can do. If you didn't know this, yet, 
+// you're welcome
+
+Q.spawn(function* () {
+	try {
+		var result = yield milestone.save();
+		
+		console.log(result)
+	}
+	catch(e) {
+		console.warn(e);
+	}
+});
 ````
+
+##### Static methods
+* _**Milestone.spawn()**_: 
+> Creates a Milestone, saves it to the database, runs it and returns its Promise with a single command. Actually, this is the **right** way to go. Its signature is the same of the Milestone constructor and both default and simplified syntaxes are allowed. It's because whatever you pass to this method is passed to the constructor of a new **Milestone** object that is then saved. Its internal implementation is as simple as ````(...params) => ((new Milestone(params)).save())````. Simple, right?
+
+````javascript
+import { Milestone } from 'mongo-milestone';
+const action = new Action('op-1', ['op-2.1', 'op-2.2'], 'op-3');
+const parameters = { param1: 'parameter 1', param2: 'parameter-2' };
+
+// Default syntax
+Milestone.spawn('complex-operation', action, parameters).then((result) => {
+	console.log(result)
+}, (error) => {
+	console.log(error);
+});
+
+// Using it with yield and Q. 
+
+Q.spawn(function* () {
+	try {
+		var result = yield Milestone.spawn('complex-operation', action, parameters);
+		
+		console.log(result)
+	}
+	catch(e) {
+		console.warn(e);
+	}
+});
+````
+
 
 ## Attempts & Named Attempts
 
