@@ -137,11 +137,12 @@ const milestone = new Milestone({
 
 * _**save()**_: 
 > Saves the Milestone to the database. Returns a Promise that resolves with the Milestone after saving it. The robot will pick the Milestone up and run it during it's next pass
-> ````javascript
-> Milestone.prototype.save = () => {
-> 		return db.collections('_milestones_').insertOne(this).then(() => (this));
-> }
-> ````
+````javascript
+Milestone.prototype.save = () => {
+	return db.collections('_milestones_').insertOne(this).then(() => (this));
+}
+````
+
 ## Attempts & Named Attempts
 
 Every time the robot tries to run an **Action** we get notified about how it's going. The *report* field stores these notifications in both **Action** and **Milestone**. Each one of thesr notifications which are called **Attempts**.
